@@ -17,6 +17,9 @@ module.exports = class Imageserver extends Module {
             dbModuleName: "database",
             webserverModuleName: "webserver",
             imagesDir: "/data/images/",
+            fileModelName: "file",
+            fileModuleName: "file",
+            fileUrlPropertyName: "fileurl",
             domain: "//localhost:13337",
             imageRoute: "/image/",
             packages: {
@@ -221,6 +224,43 @@ module.exports = class Imageserver extends Module {
         }
 
         return this.imagesDir + "/" + doc._id + "-" + pkg + "." + extension;
+    }
+
+    /**
+     *
+     * @param name
+     * @param schema
+     */
+    modifySchema(name, schema) {
+        var self = this;
+
+        if (name === this.config.fileModelName) {
+
+            schema.pre("remove", function (next) {
+                var pgkPaths = _.values(self.getPaths(this));
+
+                for (var i = 0; i < pgkPaths.length; i++) {
+                    var file = pgkPaths[i];
+                    try {
+                        fs.accessSync(file, fs.R_OK);
+                        fs.unlink(file);
+                    } catch (e) {
+                    }
+                }
+
+                next();
+            });
+
+            schema.virtual(this.config.fileUrlPropertyName).get(function () {
+                if (this.type === "image") {
+                    return self.getUrls(this);
+                } else {
+                    return Application.modules[this.config.fileModuleName].config.fileDir + "/" + this.filename;
+                }
+            });
+
+        }
+
     }
 
 }
