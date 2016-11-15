@@ -18,6 +18,7 @@ module.exports = class Imageserver extends Module {
             webserverModuleName: "webserver",
             imagesDir: "/data/images/",
             domain: "//localhost:13337",
+            imageRoute: "/image/",
             packages: {
                 thumb: {
                     type: "recrop",
@@ -47,7 +48,7 @@ module.exports = class Imageserver extends Module {
             mkdirp.sync(this.imagesDir);
 
             if (Application.modules[this.config.webserverModuleName]) {
-                Application.modules[this.config.webserverModuleName].addRoute("get", "/image/:id-:pkg.:ext", (req, res) => {
+                Application.modules[this.config.webserverModuleName].addRoute("get", this.config.imageRoute + ":id-:pkg.:ext", (req, res) => {
                     var id = req.params.id;
                     var pkg = req.params.pkg;
                     var ext = req.params.ext;
