@@ -206,7 +206,7 @@ module.exports = class Imageserver extends Module {
             extension = pkgConfig.forceType;
         }
 
-        return this.config.domain + doc._id + "-" + pkg + "." + extension;
+        return this.config.domain + this.config.imageRoute + doc._id + "-" + pkg + "." + extension;
     }
 
     /**
