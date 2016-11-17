@@ -115,21 +115,26 @@ module.exports = class Imageserver extends Module {
                             //@TODO chain multiple commmands
                         } else {
                             if (packageOptions.type == "resize") {
-                                gmObj.resize(packageOptions.width, packageOptions.height, packageOptions.options).quality(packageOptions.quality || 50);
+                                gmObj.resize(packageOptions.width, packageOptions.height, packageOptions.options).quality(packageOptions.quality || 80);
                             }
+
                             if (packageOptions.type == "recrop") {
                                 gmObj
                                     .resize(packageOptions.width, packageOptions.height, "^")
                                     .gravity(packageOptions.gravity || "Center")
-                                    .quality(packageOptions.quality || 50)
+                                    .quality(packageOptions.quality || 80)
                                     .crop(packageOptions.width, packageOptions.height, packageOptions.x || 0, packageOptions.y || 0);
+                            }
+
+                            if (packageOptions.type == "original") {
+                                gmObj.quality(packageOptions.quality || 80);
                             }
                         }
 
                         gmObj.write(targetPath, (err) => {
                             if (err) {
                                 res.status(500);
-                                return res.end(err);
+                                return res.end(err.toString());
                             }
 
                             return res.sendFile(targetPath);
