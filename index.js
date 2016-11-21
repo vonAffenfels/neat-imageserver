@@ -126,7 +126,7 @@ module.exports = class Imageserver extends Module {
                                     .crop(packageOptions.width, packageOptions.height, packageOptions.x || 0, packageOptions.y || 0);
                             }
 
-                            if (packageOptions.type == "original") {
+                            if (packageOptions.type == "original" && packageOptions.quality != 100) {
                                 gmObj.quality(packageOptions.quality || 80);
                             }
                         }
