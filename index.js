@@ -9,6 +9,7 @@ var fs = require("fs");
 var mkdirp = require('mkdirp');
 var recursive = require('recursive-readdir');
 var Promise = require("bluebird");
+var _ = require("underscore");
 
 module.exports = class Imageserver extends Module {
 
@@ -102,11 +103,13 @@ module.exports = class Imageserver extends Module {
                             return res.end("File is missing!");
                         }
 
-                        try {
-                            fs.accessSync(targetPath, fs.R_OK);
-                            return res.sendFile(targetPath);
-                        } catch (e) {
+                        if (!req.query.noCache) {
+                            try {
+                                fs.accessSync(targetPath, fs.R_OK);
+                                return res.sendFile(targetPath);
+                            } catch (e) {
 
+                            }
                         }
 
                         var gmObj = gm(fullFilePath);
@@ -248,12 +251,40 @@ module.exports = class Imageserver extends Module {
                     var file = pgkPaths[i];
                     try {
                         fs.accessSync(file, fs.R_OK);
-                        fs.unlink(file);
+                        fs.unlinkSync(file);
                     } catch (e) {
                     }
                 }
 
                 next();
+            });
+
+            schema.pre("save", function (next) {
+                var pgkPaths = _.values(self.getPaths(this));
+
+                for (var i = 0; i < pgkPaths.length; i++) {
+                    var file = pgkPaths[i];
+                    try {
+                        fs.accessSync(file, fs.R_OK);
+                        fs.unlinkSync(file);
+                    } catch (e) {
+                    }
+                }
+
+                next();
+            });
+
+            schema.post("save", function () {
+                var pgkPaths = _.values(self.getPaths(this));
+
+                for (var i = 0; i < pgkPaths.length; i++) {
+                    var file = pgkPaths[i];
+                    try {
+                        fs.accessSync(file, fs.R_OK);
+                        fs.unlinkSync(file);
+                    } catch (e) {
+                    }
+                }
             });
 
             schema.virtual(this.config.fileUrlPropertyName).get(function () {
