@@ -291,7 +291,7 @@ module.exports = class Imageserver extends Module {
                 if (this.type === "image") {
                     return self.getUrls(this);
                 } else {
-                    return Application.modules[this.config.fileModuleName].config.fileDir + "/" + this.filename;
+                    return Application.modules[self.config.fileModuleName].config.fileDir + "/" + this.filename;
                 }
             });
 
