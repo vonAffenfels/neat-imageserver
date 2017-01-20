@@ -144,7 +144,7 @@ module.exports = class Imageserver extends Module {
                             let fileModule = Application.modules[this.config.fileModuleName];
 
                             if (fileModule.distributor) {
-                                fileModule.distributor.distributeFile(targetPath).then(() => {
+                                fileModule.distributorGenerated.distributeFile(targetPath).then(() => {
                                     this.log.debug("Distributed Image");
                                 }, (e) => {
                                     this.log.error("Distribution of Image " + targetPath + " failed!");
