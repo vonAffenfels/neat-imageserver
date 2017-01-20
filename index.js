@@ -1,15 +1,16 @@
 "use strict";
 
 // @IMPORTS
-var Application = require("neat-base").Application;
-var Module = require("neat-base").Module;
-var Tools = require("neat-base").Tools;
-var gm = require("gm");
-var fs = require("fs");
-var mkdirp = require('mkdirp');
-var recursive = require('recursive-readdir');
-var Promise = require("bluebird");
-var _ = require("underscore");
+const Application = require("neat-base").Application;
+const Module = require("neat-base").Module;
+const Tools = require("neat-base").Tools;
+const gm = require("gm");
+const fs = require("fs");
+const mkdirp = require('mkdirp');
+const recursive = require('recursive-readdir');
+const Promise = require("bluebird");
+const _ = require("underscore");
+const Distributor = require("distribute-files").Distributor;
 
 module.exports = class Imageserver extends Module {
 
@@ -43,7 +44,7 @@ module.exports = class Imageserver extends Module {
             this.log.debug("Initializing...");
 
             // load Model
-            var fileModel = Application.modules[this.config.dbModuleName].getModel("file");
+            let fileModel = Application.modules[this.config.dbModuleName].getModel("file");
 
             // set paths
             this.imagesDir = Application.config.root_path + this.config.imagesDir;
@@ -53,9 +54,9 @@ module.exports = class Imageserver extends Module {
 
             if (Application.modules[this.config.webserverModuleName]) {
                 Application.modules[this.config.webserverModuleName].addRoute("get", this.config.imageRoute + ":id-:pkg.:ext", (req, res) => {
-                    var id = req.params.id;
-                    var pkg = req.params.pkg;
-                    var ext = req.params.ext;
+                    let id = req.params.id;
+                    let pkg = req.params.pkg;
+                    let ext = req.params.ext;
 
                     if (!id || !pkg || !ext) {
                         res.status(404);
@@ -71,7 +72,7 @@ module.exports = class Imageserver extends Module {
                         this.purge(pkg)
                     }
 
-                    var packageOptions = this.config.packages[pkg];
+                    let packageOptions = this.config.packages[pkg];
 
                     if ([
                             "png",
@@ -93,8 +94,8 @@ module.exports = class Imageserver extends Module {
                             return res.end();
                         }
 
-                        var fullFilePath = Application.config.root_path + doc.filepath;
-                        var targetPath = this.imagesDir + "/" + doc._id + "-" + pkg + "." + ext;
+                        let fullFilePath = Application.config.root_path + doc.filepath;
+                        let targetPath = this.imagesDir + "/" + doc._id + "-" + pkg + "." + ext;
 
                         try {
                             fs.accessSync(fullFilePath, fs.R_OK);
@@ -112,7 +113,7 @@ module.exports = class Imageserver extends Module {
                             }
                         }
 
-                        var gmObj = gm(fullFilePath);
+                        let gmObj = gm(fullFilePath);
 
                         if (packageOptions instanceof Array) {
                             //@TODO chain multiple commmands
@@ -140,6 +141,17 @@ module.exports = class Imageserver extends Module {
                                 return res.end(err.toString());
                             }
 
+                            let fileModule = Application.modules[this.config.fileModuleName];
+
+                            if (fileModule.distributor) {
+                                fileModule.distributor.distributeFile(targetPath).then(() => {
+                                    this.log.debug("Distributed Image");
+                                }, (e) => {
+                                    this.log.error("Distribution of Image " + targetPath + " failed!");
+                                    this.log.error(e);
+                                });
+                            }
+
                             return res.sendFile(targetPath);
                         });
                     }, (err) => {
@@ -159,9 +171,9 @@ module.exports = class Imageserver extends Module {
     purge(pkg) {
         return new Promise((resolve, reject) => {
             recursive(this.imagesDir, function (err, files) {
-                var regexp = new RegExp("^.*?-" + pkg + "\..*?$", "i");
-                for (var i = 0; i < files.length; i++) {
-                    var file = files[i];
+                let regexp = new RegExp("^.*?-" + pkg + "\..*?$", "i");
+                for (let i = 0; i < files.length; i++) {
+                    let file = files[i];
                     if (regexp.test(file)) {
                         fs.unlink(file);
                     }
@@ -176,9 +188,9 @@ module.exports = class Imageserver extends Module {
      * @returns {{}}
      */
     getUrls(doc) {
-        var result = {};
+        let result = {};
 
-        for (var pkg in this.config.packages) {
+        for (let pkg in this.config.packages) {
             result[pkg] = this.getPackageUrl(doc, pkg);
         }
 
@@ -191,9 +203,9 @@ module.exports = class Imageserver extends Module {
      * @returns {{}}
      */
     getPaths(doc) {
-        var result = {};
+        let result = {};
 
-        for (var pkg in this.config.packages) {
+        for (let pkg in this.config.packages) {
             result[pkg] = this.getPackagePath(doc, pkg);
         }
 
@@ -207,8 +219,8 @@ module.exports = class Imageserver extends Module {
      * @returns {string}
      */
     getPackageUrl(doc, pkg) {
-        var pkgConfig = this.config.packages[pkg];
-        var extension = doc.extension;
+        let pkgConfig = this.config.packages[pkg];
+        let extension = doc.extension;
 
         if (pkgConfig.forceType) {
             extension = pkgConfig.forceType;
@@ -224,8 +236,8 @@ module.exports = class Imageserver extends Module {
      * @returns {string}
      */
     getPackagePath(doc, pkg) {
-        var pkgConfig = this.config.packages[pkg];
-        var extension = doc.extension;
+        let pkgConfig = this.config.packages[pkg];
+        let extension = doc.extension;
 
         if (pkgConfig.forceType) {
             extension = pkgConfig.forceType;
@@ -240,15 +252,15 @@ module.exports = class Imageserver extends Module {
      * @param schema
      */
     modifySchema(name, schema) {
-        var self = this;
+        let self = this;
 
         if (name === this.config.fileModelName) {
 
             schema.pre("remove", function (next) {
-                var pgkPaths = _.values(self.getPaths(this));
+                let pgkPaths = _.values(self.getPaths(this));
 
-                for (var i = 0; i < pgkPaths.length; i++) {
-                    var file = pgkPaths[i];
+                for (let i = 0; i < pgkPaths.length; i++) {
+                    let file = pgkPaths[i];
                     try {
                         fs.accessSync(file, fs.R_OK);
                         fs.unlinkSync(file);
@@ -260,10 +272,10 @@ module.exports = class Imageserver extends Module {
             });
 
             schema.pre("save", function (next) {
-                var pgkPaths = _.values(self.getPaths(this));
+                let pgkPaths = _.values(self.getPaths(this));
 
-                for (var i = 0; i < pgkPaths.length; i++) {
-                    var file = pgkPaths[i];
+                for (let i = 0; i < pgkPaths.length; i++) {
+                    let file = pgkPaths[i];
                     try {
                         fs.accessSync(file, fs.R_OK);
                         fs.unlinkSync(file);
@@ -275,10 +287,10 @@ module.exports = class Imageserver extends Module {
             });
 
             schema.post("save", function () {
-                var pgkPaths = _.values(self.getPaths(this));
+                let pgkPaths = _.values(self.getPaths(this));
 
-                for (var i = 0; i < pgkPaths.length; i++) {
-                    var file = pgkPaths[i];
+                for (let i = 0; i < pgkPaths.length; i++) {
+                    let file = pgkPaths[i];
                     try {
                         fs.accessSync(file, fs.R_OK);
                         fs.unlinkSync(file);
