@@ -95,7 +95,8 @@ module.exports = class Imageserver extends Module {
                         }
 
                         let fullFilePath = Application.config.root_path + doc.filepath;
-                        let targetPath = this.imagesDir + "/" + doc._id + "-" + pkg + "." + ext;
+                        let targetFileName = doc._id + "-" + pkg + "." + ext;
+                        let targetPath = this.imagesDir + "/" + targetFileName;
 
                         try {
                             fs.accessSync(fullFilePath, fs.R_OK);
@@ -144,7 +145,7 @@ module.exports = class Imageserver extends Module {
                             let fileModule = Application.modules[this.config.fileModuleName];
 
                             if (fileModule.distributor) {
-                                fileModule.distributorGenerated.distributeFile(targetPath).then(() => {
+                                fileModule.distributorGenerated.distributeFile(targetFileName).then(() => {
                                     this.log.debug("Distributed Image");
                                 }, (e) => {
                                     this.log.error("Distribution of Image " + targetPath + " failed!");
