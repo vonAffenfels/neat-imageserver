@@ -79,8 +79,6 @@ module.exports = class Imageserver extends Module {
                             "jpg",
                             "jpeg",
                             "bmp",
-                            "eps",
-                            "tif",
                             "gif"
                         ].indexOf(ext) === -1) {
                         res.status(400);
