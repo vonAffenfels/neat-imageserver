@@ -108,7 +108,7 @@ module.exports = class Imageserver extends Module {
                         if (!req.query.noCache) {
                             try {
                                 fs.accessSync(targetPath, fs.R_OK);
-                                return res.sendFile(targetPath);
+                                //return res.sendFile(targetPath);
                             } catch (e) {
 
                             }
@@ -120,7 +120,9 @@ module.exports = class Imageserver extends Module {
                             //@TODO chain multiple commmands
                         } else {
                             if (packageOptions.type == "resize") {
-                                gmObj.resize(packageOptions.width, packageOptions.height, packageOptions.options).quality(packageOptions.quality || 80);
+                                gmObj
+                                    .resize(packageOptions.width, packageOptions.height, packageOptions.options)
+                                    .quality(packageOptions.quality || 80);
                             }
 
                             if (packageOptions.type == "recrop") {
@@ -132,7 +134,17 @@ module.exports = class Imageserver extends Module {
                             }
 
                             if (packageOptions.type == "original") {
-                                gmObj.quality(packageOptions.quality || 80);
+                                gmObj
+                                    .quality(packageOptions.quality || 80);
+                            }
+
+                            if (packageOptions.type == "fill") {
+                                gmObj
+                                    .resize(packageOptions.width, packageOptions.height)
+                                    .gravity(packageOptions.gravity || "Center")
+                                    .background(packageOptions.color || "#FFFFFF")
+                                    .extent(packageOptions.width, packageOptions.height)
+                                    .quality(packageOptions.quality || 80);
                             }
                         }
 
