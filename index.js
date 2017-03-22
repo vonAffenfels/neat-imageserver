@@ -108,7 +108,7 @@ module.exports = class Imageserver extends Module {
                         if (!req.query.noCache) {
                             try {
                                 fs.accessSync(targetPath, fs.R_OK);
-                                //return res.sendFile(targetPath);
+                                return res.sendFile(targetPath);
                             } catch (e) {
 
                             }
