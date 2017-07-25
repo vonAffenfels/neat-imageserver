@@ -5,6 +5,7 @@ const Application = require("neat-base").Application;
 const Module = require("neat-base").Module;
 const Tools = require("neat-base").Tools;
 const gm = require("gm");
+const path = require("path");
 const fs = require("fs");
 const mkdirp = require('mkdirp');
 const recursive = require('recursive-readdir');
@@ -146,6 +147,13 @@ module.exports = class Imageserver extends Module {
                                     .extent(packageOptions.width, packageOptions.height)
                                     .quality(packageOptions.quality || 80);
                             }
+                        }
+
+                        if (packageOptions.watermark) {
+                            gmObj.command('composite')
+                                .gravity(packageOptions.watermark.gravity || 'Center')
+                                .out('-geometry', packageOptions.watermark.geometry || '+0+0')
+                                .in(path.join(Application.config.root_path, packageOptions.watermark.src));
                         }
 
                         gmObj.write(targetPath, (err) => {
