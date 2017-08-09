@@ -117,12 +117,16 @@ module.exports = class Imageserver extends Module {
 
                         let gmObj = gm(fullFilePath);
 
+                        gmObj.autoOrient();
+                        gmObj.noProfile();
+
                         if (packageOptions instanceof Array) {
                             //@TODO chain multiple commmands
                         } else {
                             if (packageOptions.type == "resize") {
                                 gmObj
                                     .resize(packageOptions.width, packageOptions.height, packageOptions.options)
+                                    .interlace("Line")
                                     .quality(packageOptions.quality || 80);
                             }
 
@@ -131,11 +135,13 @@ module.exports = class Imageserver extends Module {
                                     .resize(packageOptions.width, packageOptions.height, "^")
                                     .gravity(packageOptions.gravity || "Center")
                                     .quality(packageOptions.quality || 80)
+                                    .interlace("Line")
                                     .crop(packageOptions.width, packageOptions.height, packageOptions.x || 0, packageOptions.y || 0);
                             }
 
                             if (packageOptions.type == "original") {
                                 gmObj
+                                    .interlace("Line")
                                     .quality(packageOptions.quality || 80);
                             }
 
@@ -145,6 +151,7 @@ module.exports = class Imageserver extends Module {
                                     .gravity(packageOptions.gravity || "Center")
                                     .background(packageOptions.color || "#FFFFFF")
                                     .extent(packageOptions.width, packageOptions.height)
+                                    .interlace("Line")
                                     .quality(packageOptions.quality || 80);
                             }
                         }
