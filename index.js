@@ -127,6 +127,7 @@ module.exports = class Imageserver extends Module {
                                 gmObj
                                     .resize(packageOptions.width, packageOptions.height, packageOptions.options)
                                     .interlace("Line")
+                                    .samplingFactor("4:2:0")
                                     .quality(packageOptions.quality || 80);
                             }
 
@@ -136,12 +137,14 @@ module.exports = class Imageserver extends Module {
                                     .gravity(packageOptions.gravity || "Center")
                                     .quality(packageOptions.quality || 80)
                                     .interlace("Line")
+                                    .samplingFactor("4:2:0")
                                     .crop(packageOptions.width, packageOptions.height, packageOptions.x || 0, packageOptions.y || 0);
                             }
 
                             if (packageOptions.type == "original") {
                                 gmObj
                                     .interlace("Line")
+                                    .samplingFactor("4:2:0")
                                     .quality(packageOptions.quality || 80);
                             }
 
@@ -152,6 +155,7 @@ module.exports = class Imageserver extends Module {
                                     .background(packageOptions.color || "#FFFFFF")
                                     .extent(packageOptions.width, packageOptions.height)
                                     .interlace("Line")
+                                    .samplingFactor("4:2:0")
                                     .quality(packageOptions.quality || 80);
                             }
                         }
