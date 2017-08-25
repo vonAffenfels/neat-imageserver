@@ -160,6 +160,24 @@ module.exports = class Imageserver extends Module {
                             }
                         }
 
+                        if (packageOptions.optimize) {
+                            switch (packageOptions.optimize) {
+                                case 1:
+                                    gmObj.interlace("Plane");
+                                    gmObj.gamma(1.0, 1.1, 1.15);
+                                    gmObj.modulate(110, 135, 102);
+                                    break;
+                                case 2:
+                                    gmObj.interlace("Plane");
+                                    gmObj.gamma(1.1, 1.1, 1.1);
+                                    gmObj.modulate(110, 135, 102);
+                                    break;
+                                default:
+                                    break;
+                            }
+                            //gmObj.sharpen(1,1);
+                        }
+
                         if (packageOptions.watermark) {
                             gmObj.command('composite')
                                 .gravity(packageOptions.watermark.gravity || 'Center')
