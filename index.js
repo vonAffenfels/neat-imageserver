@@ -23,6 +23,7 @@ module.exports = class Imageserver extends Module {
             fileModelName: "file",
             fileModuleName: "file",
             fileUrlPropertyName: "fileurl",
+            fileSizesPropertyName: "sizes",
             domain: "//localhost:13337",
             imageRoute: "/image/",
             packages: {
@@ -355,6 +356,23 @@ module.exports = class Imageserver extends Module {
                 } else {
                     return Application.modules[self.config.fileModuleName].config.fileDir + "/" + this.filename;
                 }
+            });
+            schema.virtual(this.config.fileSizesPropertyName).get(function () {
+                if (this.type === "image") {
+                    let sizes = {};
+                    for( let pkg in this.config.packages) {
+                        let imgConf = this.config.packages[pgk];
+                        sizes[pkg] = {
+                            width: imgConf.width,
+                            height: imgConf.height
+                        }
+
+                    }
+
+                    return sizes;
+                }
+
+                return {};
             });
 
         }
