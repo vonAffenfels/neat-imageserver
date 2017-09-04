@@ -265,6 +265,24 @@ module.exports = class Imageserver extends Module {
 
     /**
      *
+     * @returns {{}}
+     */
+    getSizes() {
+        let sizes = {};
+        for( let pkg in this.config.packages) {
+            let imgConf = this.config.packages[pgk];
+            sizes[pkg] = {
+                width: imgConf.width,
+                height: imgConf.height
+            }
+
+        }
+
+        return sizes;
+    }
+
+    /**
+     *
      * @param doc
      * @param pkg
      * @returns {string}
@@ -359,17 +377,7 @@ module.exports = class Imageserver extends Module {
             });
             schema.virtual(this.config.fileSizesPropertyName).get(function () {
                 if (this.type === "image") {
-                    let sizes = {};
-                    for( let pkg in this.config.packages) {
-                        let imgConf = this.config.packages[pgk];
-                        sizes[pkg] = {
-                            width: imgConf.width,
-                            height: imgConf.height
-                        }
-
-                    }
-
-                    return sizes;
+                    return self.getSizes();
                 }
 
                 return {};
