@@ -270,7 +270,7 @@ module.exports = class Imageserver extends Module {
     getSizes() {
         let sizes = {};
         for( let pkg in this.config.packages) {
-            let imgConf = this.config.packages[pgk];
+            let imgConf = this.config.packages[pkg];
             sizes[pkg] = {
                 width: imgConf.width,
                 height: imgConf.height
