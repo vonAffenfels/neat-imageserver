@@ -24,6 +24,11 @@ module.exports = class Imageserver extends Module {
             fileModuleName: "file",
             fileUrlPropertyName: "fileurl",
             fileSizesPropertyName: "sizes",
+            fileWatermarkPropertyName: "watermarkText",
+            watermarkFont: "Arial",
+            watermarkGravity: "Center",
+            watermarkTextColor: "#ffffff",
+            watermarkFontSize: "14",
             domain: "//localhost:13337",
             imageRoute: "/image/",
             packages: {
@@ -180,10 +185,37 @@ module.exports = class Imageserver extends Module {
                         }
 
                         if (packageOptions.watermark) {
-                            gmObj.command('composite')
-                                .gravity(packageOptions.watermark.gravity || 'Center')
-                                .out('-geometry', packageOptions.watermark.geometry || '+0+0')
-                                .in(path.join(Application.config.root_path, packageOptions.watermark.src));
+                            let watermarkText = doc.get(this.config.fileWatermarkPropertyName);
+
+                            if(packageOptions.watermark.showText && watermarkText){
+                                let textColor = packageOptions.watermark.textColor || this.config.watermarkTextColor;
+                                let textSize = packageOptions.watermark.textSize || this.config.watermarkFontSize;
+                                let gravity = packageOptions.watermark.gravity || this.config.watermarkGravity;
+                                let font = packageOptions.watermark.textFont || this.config.watermarkFont;
+
+                                let posX = 0;
+                                let posY = 0;
+
+                                if(packageOptions.watermark.position){
+                                    posX = packageOptions.watermark.position.x;
+                                    posY = packageOptions.watermark.position.y;
+                                }
+
+                                this.log.debug("Drawing Text on Image:", watermarkText, "|Font:", font, "|Color:", textColor, "|Size:", textSize, "|Gravity:", gravity, "|Position:", posX+":"+posY );
+
+                                gmObj.font(font)
+                                    .fill(textColor)
+                                    .fontSize(textSize)
+                                    .drawText(posX, posY, watermarkText || '%m:%f', gravity);
+                            }
+                            else {
+
+                                gmObj.command('composite')
+                                    .gravity(packageOptions.watermark.gravity || 'Center')
+                                    .out('-geometry', packageOptions.watermark.geometry || '+0+0')
+                                    .in(path.join(Application.config.root_path, packageOptions.watermark.src));
+
+                            }
                         }
 
                         gmObj.write(targetPath, (err) => {
@@ -208,6 +240,30 @@ module.exports = class Imageserver extends Module {
                     }, (err) => {
                         res.err(err);
                     });
+                }, 0);
+
+                Application.modules[this.config.webserverModuleName].addRoute("delete", this.config.imageRoute + ":id", (req, res) => {
+                    let id = req.params.id;
+
+                    if (!id) {
+                        res.status(404);
+                        return res.end();
+                    }
+
+                    fileModel.findOne({
+                        _id: id
+                    }).exec().then((doc) => {
+
+                        if (!doc) {
+                            res.status(404);
+                            return res.end();
+                        }
+
+                        this.clearPackages(doc);
+
+                        res.send();
+                    });
+
                 }, 0);
             }
 
@@ -317,6 +373,23 @@ module.exports = class Imageserver extends Module {
 
     /**
      *
+     * @param doc
+     */
+    clearPackages(doc) {
+        let pgkPaths = _.values(this.getPaths(doc));
+
+        for (let i = 0; i < pgkPaths.length; i++) {
+            let file = pgkPaths[i];
+            try {
+                fs.accessSync(file, fs.R_OK);
+                fs.unlinkSync(file);
+            } catch (e) {
+            }
+        }
+    }
+
+    /**
+     *
      * @param name
      * @param schema
      */
@@ -326,46 +399,19 @@ module.exports = class Imageserver extends Module {
         if (name === this.config.fileModelName) {
 
             schema.pre("remove", function (next) {
-                let pgkPaths = _.values(self.getPaths(this));
-
-                for (let i = 0; i < pgkPaths.length; i++) {
-                    let file = pgkPaths[i];
-                    try {
-                        fs.accessSync(file, fs.R_OK);
-                        fs.unlinkSync(file);
-                    } catch (e) {
-                    }
-                }
+                self.clearPackages(this);
 
                 next();
             });
 
             schema.pre("save", function (next) {
-                let pgkPaths = _.values(self.getPaths(this));
-
-                for (let i = 0; i < pgkPaths.length; i++) {
-                    let file = pgkPaths[i];
-                    try {
-                        fs.accessSync(file, fs.R_OK);
-                        fs.unlinkSync(file);
-                    } catch (e) {
-                    }
-                }
+                self.clearPackages(this);
 
                 next();
             });
 
             schema.post("save", function () {
-                let pgkPaths = _.values(self.getPaths(this));
-
-                for (let i = 0; i < pgkPaths.length; i++) {
-                    let file = pgkPaths[i];
-                    try {
-                        fs.accessSync(file, fs.R_OK);
-                        fs.unlinkSync(file);
-                    } catch (e) {
-                    }
-                }
+                self.clearPackages(this);
             });
 
             schema.virtual(this.config.fileUrlPropertyName).get(function () {
