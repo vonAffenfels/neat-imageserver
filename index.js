@@ -184,38 +184,33 @@ module.exports = class Imageserver extends Module {
                             //gmObj.sharpen(1,1);
                         }
 
-                        if (packageOptions.watermark) {
+                        if (packageOptions.watermark && packageOptions.watermark.showText && watermarkText) {
                             let watermarkText = doc.get(this.config.fileWatermarkPropertyName);
+                            let textColor = packageOptions.watermark.textColor || this.config.watermarkTextColor;
+                            let textSize = packageOptions.watermark.textSize || this.config.watermarkFontSize;
+                            let gravity = packageOptions.watermark.gravity || this.config.watermarkGravity;
+                            let font = packageOptions.watermark.textFont || this.config.watermarkFont;
 
-                            if(packageOptions.watermark.showText && watermarkText){
-                                let textColor = packageOptions.watermark.textColor || this.config.watermarkTextColor;
-                                let textSize = packageOptions.watermark.textSize || this.config.watermarkFontSize;
-                                let gravity = packageOptions.watermark.gravity || this.config.watermarkGravity;
-                                let font = packageOptions.watermark.textFont || this.config.watermarkFont;
+                            let posX = 0;
+                            let posY = 0;
 
-                                let posX = 0;
-                                let posY = 0;
-
-                                if(packageOptions.watermark.position){
-                                    posX = packageOptions.watermark.position.x;
-                                    posY = packageOptions.watermark.position.y;
-                                }
-
-                                this.log.debug("Drawing Text on Image:", watermarkText, "|Font:", font, "|Color:", textColor, "|Size:", textSize, "|Gravity:", gravity, "|Position:", posX+":"+posY );
-
-                                gmObj.font(font)
-                                    .fill(textColor)
-                                    .fontSize(textSize)
-                                    .drawText(posX, posY, watermarkText || '%m:%f', gravity);
+                            if (packageOptions.watermark.position) {
+                                posX = packageOptions.watermark.position.x;
+                                posY = packageOptions.watermark.position.y;
                             }
-                            else {
 
-                                gmObj.command('composite')
-                                    .gravity(packageOptions.watermark.gravity || 'Center')
-                                    .out('-geometry', packageOptions.watermark.geometry || '+0+0')
-                                    .in(path.join(Application.config.root_path, packageOptions.watermark.src));
+                            this.log.debug("Drawing Text on Image:", watermarkText, "|Font:", font, "|Color:", textColor, "|Size:", textSize, "|Gravity:", gravity, "|Position:", posX + ":" + posY);
 
-                            }
+                            gmObj.font(font)
+                                .fill(textColor)
+                                .fontSize(textSize)
+                                .drawText(posX, posY, watermarkText || '%m:%f', gravity);
+                        }
+                        else if (packageOptions.watermark && packageOptions.watermark.src) {
+                            gmObj.command('composite')
+                                .gravity(packageOptions.watermark.gravity || 'Center')
+                                .out('-geometry', packageOptions.watermark.geometry || '+0+0')
+                                .in(path.join(Application.config.root_path, packageOptions.watermark.src));
                         }
 
                         gmObj.write(targetPath, (err) => {
@@ -325,7 +320,7 @@ module.exports = class Imageserver extends Module {
      */
     getSizes() {
         let sizes = {};
-        for( let pkg in this.config.packages) {
+        for (let pkg in this.config.packages) {
             let imgConf = this.config.packages[pkg];
             sizes[pkg] = {
                 width: imgConf.width,
