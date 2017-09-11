@@ -184,27 +184,29 @@ module.exports = class Imageserver extends Module {
                             //gmObj.sharpen(1,1);
                         }
 
-                        if (packageOptions.watermark && packageOptions.watermark.showText && watermarkText) {
+                        if (packageOptions.watermark && packageOptions.watermark.showText) {
                             let watermarkText = doc.get(this.config.fileWatermarkPropertyName);
-                            let textColor = packageOptions.watermark.textColor || this.config.watermarkTextColor;
-                            let textSize = packageOptions.watermark.textSize || this.config.watermarkFontSize;
-                            let gravity = packageOptions.watermark.gravity || this.config.watermarkGravity;
-                            let font = packageOptions.watermark.textFont || this.config.watermarkFont;
+                            if (watermarkText) {
+                                let textColor = packageOptions.watermark.textColor || this.config.watermarkTextColor;
+                                let textSize = packageOptions.watermark.textSize || this.config.watermarkFontSize;
+                                let gravity = packageOptions.watermark.gravity || this.config.watermarkGravity;
+                                let font = packageOptions.watermark.textFont || this.config.watermarkFont;
 
-                            let posX = 0;
-                            let posY = 0;
+                                let posX = 0;
+                                let posY = 0;
 
-                            if (packageOptions.watermark.position) {
-                                posX = packageOptions.watermark.position.x;
-                                posY = packageOptions.watermark.position.y;
+                                if (packageOptions.watermark.position) {
+                                    posX = packageOptions.watermark.position.x;
+                                    posY = packageOptions.watermark.position.y;
+                                }
+
+                                this.log.debug("Drawing Text on Image:", watermarkText, "|Font:", font, "|Color:", textColor, "|Size:", textSize, "|Gravity:", gravity, "|Position:", posX + ":" + posY);
+
+                                gmObj.font(font)
+                                    .fill(textColor)
+                                    .fontSize(textSize)
+                                    .drawText(posX, posY, watermarkText || '%m:%f', gravity);
                             }
-
-                            this.log.debug("Drawing Text on Image:", watermarkText, "|Font:", font, "|Color:", textColor, "|Size:", textSize, "|Gravity:", gravity, "|Position:", posX + ":" + posY);
-
-                            gmObj.font(font)
-                                .fill(textColor)
-                                .fontSize(textSize)
-                                .drawText(posX, posY, watermarkText || '%m:%f', gravity);
                         }
                         else if (packageOptions.watermark && packageOptions.watermark.src) {
                             gmObj.command('composite')
