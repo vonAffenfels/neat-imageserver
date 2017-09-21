@@ -304,13 +304,14 @@ module.exports = class Imageserver extends Module {
     /**
      *
      * @param doc
+     * @param relativePath
      * @returns {{}}
      */
-    getPaths(doc) {
+    getPaths(doc, relativePath) {
         let result = {};
 
         for (let pkg in this.config.packages) {
-            result[pkg] = this.getPackagePath(doc, pkg);
+            result[pkg] = this.getPackagePath(doc, pkg, relativePath);
         }
 
         return result;
@@ -355,9 +356,10 @@ module.exports = class Imageserver extends Module {
      *
      * @param doc
      * @param pkg
+     * @param relativePath
      * @returns {string}
      */
-    getPackagePath(doc, pkg) {
+    getPackagePath(doc, pkg, relativePath) {
         let pkgConfig = this.config.packages[pkg];
         let extension = doc.extension;
 
@@ -365,7 +367,7 @@ module.exports = class Imageserver extends Module {
             extension = pkgConfig.forceType;
         }
 
-        return this.imagesDir + "/" + doc._id + "-" + pkg + "." + extension;
+        return (relativePath ? this.config.imagesDir : this.imagesDir) + "/" + doc._id + "-" + pkg + "." + extension;
     }
 
     /**
