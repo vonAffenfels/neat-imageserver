@@ -108,7 +108,7 @@ module.exports = class Imageserver extends Module {
                         try {
                             fs.accessSync(fullFilePath, fs.R_OK);
                         } catch (e) {
-                            res.status(500);
+                            res.status(404);
                             return res.end("File is missing!");
                         }
 
